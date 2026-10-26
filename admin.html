@@ -90,6 +90,7 @@
                         <option value="AGENDADO">AGENDADO</option>
                         <option value="ES HOY">ES HOY</option>
                         <option value="EN CAMINO">EN CAMINO</option>
+                        <option value="PARA RECOGER">PARA RECOGER</option>
                         <option value="ENTREGADO">ENTREGADO</option>
                     </select>
                 </div>
@@ -323,7 +324,6 @@
                 const deposito = parseFloat(p.valor_deposito) || 0;
                 const esAlquiler = (p.tipo_servicio === 'ALQUILER');
                 
-                // Restante a cobrar en entrega
                 const restante = (total + domi) - anti;
                 const descSegura = (p.descripcion || 'Sin descripción').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
@@ -364,6 +364,7 @@
                             <option value="AGENDADO" ${p.estado === 'AGENDADO' ? 'selected' : ''}>AGENDADO</option>
                             <option value="ES HOY" ${p.estado === 'ES HOY' ? 'selected' : ''}>ES HOY</option>
                             <option value="EN CAMINO" ${p.estado === 'EN CAMINO' ? 'selected' : ''}>EN CAMINO</option>
+                            <option value="PARA RECOGER" ${p.estado === 'PARA RECOGER' ? 'selected' : ''}>PARA RECOGER</option>
                             <option value="ENTREGADO" ${p.estado === 'ENTREGADO' ? 'selected' : ''}>ENTREGADO</option>
                         </select>
                     </td>
