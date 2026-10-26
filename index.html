@@ -6,7 +6,7 @@
     <title>Registro de Pedidos - Cupissa</title>
     <!-- Favicon -->
     <link rel="icon" href="favicon.png" type="image/png">
-    <!-- Tailwind CSS para un diseño profesional y rápido -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -42,7 +42,7 @@
             
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold text-white tracking-tight">Nuevo <span class="text-pink-600">Pedido</span></h1>
-                <p class="text-zinc-400 text-sm mt-1">Completa los datos del cliente y adjunta los comprobantes o fotos.</p>
+                <p class="text-zinc-400 text-sm mt-1">Completa los datos del cliente, la descripción y adjunta los comprobantes o fotos.</p>
             </div>
 
             <form id="pedidoForm" class="space-y-6">
@@ -100,7 +100,13 @@
                     </div>
                 </div>
 
-                <!-- Sección 4: Asesor -->
+                <!-- Sección 4: Descripción del Producto -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-pink-500 mb-2">Descripción del Producto *</label>
+                    <textarea id="descripcion" rows="3" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. Detalle de rosas rojas con caja personalizada y dedicatoria..."></textarea>
+                </div>
+
+                <!-- Sección 5: Asesor -->
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Nombre del Asesor *</label>
                     <select id="asesor_select" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm">
@@ -108,7 +114,7 @@
                     </select>
                 </div>
 
-                <!-- Sección 5: Subir Imágenes (Múltiples) -->
+                <!-- Sección 6: Subir Imágenes (Múltiples) -->
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Imágenes del Producto / Comprobante</label>
                     <div class="border-2 border-dashed border-zinc-800 hover:border-pink-600 rounded-xl p-6 text-center transition cursor-pointer bg-black/20" onclick="document.getElementById('imagenes_input').click()">
@@ -140,7 +146,6 @@
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Establecer la fecha actual por defecto en el input de fecha de entrega
         document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
 
         async function cargarAsesores() {
@@ -221,6 +226,7 @@
                     total_pedido: parseFloat(document.getElementById('total_pedido').value) || 0,
                     valor_domicilio: parseFloat(document.getElementById('valor_domicilio').value) || 0,
                     valor_anticipo: parseFloat(document.getElementById('valor_anticipo').value) || 0,
+                    descripcion: document.getElementById('descripcion').value,
                     asesor_id: parseInt(asesorId),
                     nombre_asesor: nombreAsesor,
                     imagenes: imageUrls,
