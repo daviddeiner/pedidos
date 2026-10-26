@@ -169,13 +169,23 @@
         </div>
     </div>
 
-    <!-- Modal Ver Imágenes -->
+    <!-- Modal Ver Imágenes y Descripción -->
     <div id="modalImagen" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-zinc-900 border border-zinc-800 max-w-3xl w-full p-6 rounded-2xl relative max-h-[90vh] flex flex-col">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-2xl w-full p-6 rounded-2xl relative max-h-[90vh] flex flex-col">
             <button onclick="cerrarModalImagen()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl z-10"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-base font-bold text-white mb-4">Evidencias del Pedido</h3>
-            <div id="galeriaImagenes" class="flex flex-wrap gap-4 overflow-y-auto p-2 justify-center items-center flex-grow">
-                <!-- Se llena dinámicamente -->
+            <h3 class="text-base font-bold text-white mb-4">Evidencias y Descripción del Pedido</h3>
+            
+            <div class="overflow-y-auto space-y-4 pr-1 flex-grow">
+                <!-- Galería de Imágenes -->
+                <div id="galeriaImagenes" class="flex flex-wrap gap-3 justify-center items-center">
+                    <!-- Se llena dinámicamente -->
+                </div>
+
+                <!-- Descripción Abajo de las Imágenes -->
+                <div class="bg-black/60 border border-zinc-800 p-4 rounded-xl">
+                    <span class="text-[10px] uppercase font-semibold text-pink-500 tracking-wider block mb-1">Descripción del Producto</span>
+                    <p id="textoDescripcionModal" class="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">Sin descripción registrada.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -231,7 +241,6 @@
                 const hoyStr = new Date().toISOString().split('T')[0];
                 pedidosGlobal = await Promise.all(data.map(async (p) => {
                     const fechaPedidoStr = p.fecha_pedido || p.created_at.split('T')[0];
-                    // Si llega la fecha y está agendado, cambia automáticamente a 'ES HOY'
                     if (fechaPedidoStr === hoyStr && p.estado === 'AGENDADO') {
                         p.estado = 'ES HOY';
                         await supabaseClient.from('pedidos').update({ estado: 'ES HOY' }).eq('id', p.id);
@@ -274,7 +283,6 @@
             const delMes = todos.filter(p => (p.fecha_pedido || p.created_at).startsWith(mesFiltro || mesActualStr));
             document.getElementById('kpiMes').textContent = delMes.length;
 
-            // Pedidos de Hoy: Solo cuenta los que son de hoy y cuyo estado sigue siendo 'ES HOY' o 'AGENDADO' (se excluyen ENTREGADO o EN CAMINO)
             const deHoy = todos.filter(p => {
                 const fechaBase = p.fecha_pedido || p.created_at.split('T')[0];
                 return fechaBase === hoyStr && (p.estado === 'ES HOY' || p.estado === 'AGENDADO');
@@ -306,6 +314,8 @@
                 const domi = parseFloat(p.valor_domicilio) || 0;
                 const anti = parseFloat(p.valor_anticipo) || 0;
                 const restante = (total + domi) - anti;
+                // Escapar comillas para la función onclick
+                const descSegura = (p.descripcion || 'Sin descripción').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-zinc-800/40 transition';
@@ -327,7 +337,7 @@
                     <td class="p-3 text-right font-bold text-emerald-400">$${restante.toLocaleString()}</td>
                     <td class="p-3 text-center">
                         ${p.imagenes && p.imagenes.length > 0 ? 
-                            `<button onclick='abrirModalImagen(${JSON.stringify(p.imagenes)})' class="bg-zinc-800 hover:bg-pink-600 text-white px-2.5 py-1 rounded text-[10px] uppercase transition"><i class="fa-solid fa-image mr-1"></i> Ver (${p.imagenes.length})</button>` : 
+                            `<button onclick='abrirModalImagen(${JSON.stringify(p.imagenes)}, "${descSegura}")' class="bg-zinc-800 hover:bg-pink-600 text-white px-2.5 py-1 rounded text-[10px] uppercase transition"><i class="fa-solid fa-image mr-1"></i> Ver (${p.imagenes.length})</button>` : 
                             `<span class="text-zinc-600 text-[10px]">Sin foto</span>`
                         }
                     </td>
@@ -407,15 +417,17 @@
             }
         });
 
-        function abrirModalImagen(imagenes) {
+        function abrirModalImagen(imagenes, descripcion) {
             const galeria = document.getElementById('galeriaImagenes');
             galeria.innerHTML = '';
             imagenes.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;
-                img.className = 'max-h-[70vh] rounded-lg border border-zinc-700 object-contain shadow-2xl';
+                img.className = 'max-h-[50vh] rounded-lg border border-zinc-700 object-contain shadow-2xl';
                 galeria.appendChild(img);
             });
+
+            document.getElementById('textoDescripcionModal').textContent = descripcion || 'Sin descripción registrada.';
             document.getElementById('modalImagen').classList.remove('hidden');
         }
         function cerrarModalImagen() { document.getElementById('modalImagen').classList.add('hidden'); }
