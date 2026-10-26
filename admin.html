@@ -29,7 +29,7 @@
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col justify-between">
 
-    <!-- Header -->
+    <!-- Header (Solo Logo) -->
     <header class="border-b border-zinc-800 bg-zinc-950 py-4 px-6 sticky top-0 z-50 flex justify-between items-center">
         <div class="flex items-center gap-3">
             <img src="logo.png" alt="Logo Cupissa" class="h-10 w-auto object-contain" onerror="this.src='https://via.placeholder.com/150/000000/ff007f?text=CUPISSA'">
@@ -90,7 +90,6 @@
                         <option value="AGENDADO">AGENDADO</option>
                         <option value="ES HOY">ES HOY</option>
                         <option value="EN CAMINO">EN CAMINO</option>
-                        <option value="PARA RECOGER">PARA RECOGER</option>
                         <option value="ENTREGADO">ENTREGADO</option>
                     </select>
                 </div>
@@ -116,7 +115,7 @@
             </div>
             <div class="flex gap-6">
                 <div class="bg-black/50 px-4 py-2 rounded-lg border border-zinc-800">
-                    <span class="text-[10px] uppercase text-zinc-400 block">Total Valor Pedido</span>
+                    <span class="text-[10px] uppercase text-zinc-400 block">Total Venta/Alquiler (Sin Depósito)</span>
                     <span id="asesorTotalValor" class="text-lg font-bold text-white">$0</span>
                 </div>
                 <div class="bg-black/50 px-4 py-2 rounded-lg border border-pink-900">
@@ -136,16 +135,16 @@
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-black/60 text-zinc-400 uppercase tracking-wider border-b border-zinc-800">
+                            <th class="p-3">Tipo</th>
                             <th class="p-3">Fecha Entrega</th>
                             <th class="p-3">Cliente</th>
                             <th class="p-3">Contacto</th>
                             <th class="p-3">Ubicación</th>
-                            <th class="p-3 text-right">Valores (Tot / Dom / Ant)</th>
-                            <th class="p-3 text-right">Restante</th>
+                            <th class="p-3 text-right">Valores (Tot / Dom / Ant / Dep)</th>
+                            <th class="p-3 text-right">Restante a Cobrar</th>
                             <th class="p-3 text-center">Imagen</th>
                             <th class="p-3 text-center">Estado</th>
                             <th class="p-3">Asesor</th>
-                            <th class="p-3 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tablaPedidosBody" class="divide-y divide-zinc-800/60 text-zinc-300">
@@ -171,82 +170,6 @@
         </div>
     </div>
 
-    <!-- Modal Editar Pedido -->
-    <div id="modalEditar" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-2xl p-6 rounded-2xl shadow-2xl relative max-h-[90vh] flex flex-col">
-            <button onclick="cerrarModalEditar()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-pen-to-square text-pink-500 mr-2"></i> Editar Pedido</h3>
-            
-            <form id="formEditarPedido" class="space-y-4 overflow-y-auto pr-2 flex-grow text-xs">
-                <input type="hidden" id="edit_id">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Nombre Cliente *</label>
-                        <input type="text" id="edit_nombre_cliente" required class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Teléfono *</label>
-                        <input type="text" id="edit_telefono_cliente" required class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold uppercase text-pink-500 mb-1">Fecha Entrega *</label>
-                        <input type="date" id="edit_fecha_pedido" required class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-semibold uppercase text-zinc-400 mb-1">Correo Electrónico</label>
-                    <input type="email" id="edit_correo_cliente" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="md:col-span-3">
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Dirección Exacta</label>
-                        <input type="text" id="edit_direccion_exacta" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Barrio</label>
-                        <input type="text" id="edit_barrio" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Ciudad</label>
-                        <input type="text" id="edit_ciudad" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/40 p-3 rounded-xl border border-zinc-800">
-                    <div>
-                        <label class="block font-semibold uppercase text-pink-500 mb-1">Total Pedido *</label>
-                        <input type="number" id="edit_total_pedido" required step="any" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Valor Domicilio</label>
-                        <input type="number" id="edit_valor_domicilio" step="any" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold uppercase text-zinc-400 mb-1">Valor Anticipo</label>
-                        <input type="number" id="edit_valor_anticipo" step="any" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-semibold uppercase text-zinc-400 mb-1">Descripción del Producto</label>
-                    <textarea id="edit_descripcion" rows="2" class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none"></textarea>
-                </div>
-
-                <div>
-                    <label class="block font-semibold uppercase text-zinc-400 mb-1">Asesor *</label>
-                    <select id="edit_asesor_select" required class="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-white focus:border-pink-600 focus:outline-none">
-                        <!-- Opciones dinámicas -->
-                    </select>
-                </div>
-
-                <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition uppercase tracking-wider mt-2">Guardar Cambios</button>
-            </form>
-        </div>
-    </div>
-
     <!-- Modal Ver Imágenes y Descripción -->
     <div id="modalImagen" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
         <div class="bg-zinc-900 border border-zinc-800 max-w-2xl w-full p-6 rounded-2xl relative max-h-[90vh] flex flex-col">
@@ -254,7 +177,12 @@
             <h3 class="text-base font-bold text-white mb-4">Evidencias y Descripción del Pedido</h3>
             
             <div class="overflow-y-auto space-y-4 pr-1 flex-grow">
-                <div id="galeriaImagenes" class="flex flex-wrap gap-3 justify-center items-center"></div>
+                <!-- Galería de Imágenes -->
+                <div id="galeriaImagenes" class="flex flex-wrap gap-3 justify-center items-center">
+                    <!-- Se llena dinámicamente -->
+                </div>
+
+                <!-- Descripción Abajo de las Imágenes -->
                 <div class="bg-black/60 border border-zinc-800 p-4 rounded-xl">
                     <span class="text-[10px] uppercase font-semibold text-pink-500 tracking-wider block mb-1">Descripción del Producto</span>
                     <p id="textoDescripcionModal" class="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">Sin descripción registrada.</p>
@@ -295,16 +223,11 @@
 
                 const filtroAsesor = document.getElementById('filtroAsesor');
                 filtroAsesor.innerHTML = '<option value="">Todos los Asesores</option>';
-
-                const editSelect = document.getElementById('edit_asesor_select');
-                editSelect.innerHTML = '<option value="">Selecciona un asesor...</option>';
-
                 data.forEach(a => {
                     const opt = document.createElement('option');
                     opt.value = a.id;
                     opt.textContent = a.nombre;
-                    filtroAsesor.appendChild(opt.cloneNode(true));
-                    editSelect.appendChild(opt);
+                    filtroAsesor.appendChild(opt);
                 });
             } catch (err) {
                 console.error('Error cargando asesores:', err);
@@ -373,7 +296,13 @@
             const entregadosMes = delMes.filter(p => p.estado === 'ENTREGADO');
             document.getElementById('kpiEntregados').textContent = entregadosMes.length;
 
-            const dineroMes = delMes.reduce((acc, p) => acc + (parseFloat(p.total_pedido) || 0), 0);
+            // Lógica: EXCLUIR el valor del depósito de las ventas totales del mes
+            const dineroMes = delMes.reduce((acc, p) => {
+                const totalPedido = parseFloat(p.total_pedido) || 0;
+                const deposito = p.tipo_servicio === 'ALQUILER' ? (parseFloat(p.valor_deposito) || 0) : 0;
+                return acc + (totalPedido - deposito);
+            }, 0);
+
             document.getElementById('kpiDineroMes').textContent = `$${dineroMes.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
         }
 
@@ -391,12 +320,21 @@
                 const total = parseFloat(p.total_pedido) || 0;
                 const domi = parseFloat(p.valor_domicilio) || 0;
                 const anti = parseFloat(p.valor_anticipo) || 0;
+                const deposito = parseFloat(p.valor_deposito) || 0;
+                const esAlquiler = (p.tipo_servicio === 'ALQUILER');
+                
+                // Restante a cobrar en entrega
                 const restante = (total + domi) - anti;
                 const descSegura = (p.descripcion || 'Sin descripción').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-zinc-800/40 transition';
                 tr.innerHTML = `
+                    <td class="p-3 font-bold">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${esAlquiler ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-pink-950 text-pink-400 border border-pink-800'}">
+                            ${p.tipo_servicio || 'VENTA'}
+                        </span>
+                    </td>
                     <td class="p-3 text-zinc-400 font-medium">${p.fecha_pedido || p.created_at.split('T')[0]}</td>
                     <td class="p-3 font-semibold text-white">${p.nombre_cliente}</td>
                     <td class="p-3">
@@ -409,7 +347,10 @@
                     </td>
                     <td class="p-3 text-right">
                         <div class="text-pink-400 font-bold">$${total.toLocaleString()}</div>
-                        <div class="text-[10px] text-zinc-500">Dom: $${domi.toLocaleString()} | Ant: $${anti.toLocaleString()}</div>
+                        <div class="text-[10px] text-zinc-500">
+                            Dom: $${domi.toLocaleString()} | Ant: $${anti.toLocaleString()}
+                            ${esAlquiler ? `<br><span class="text-amber-400 font-semibold">Depósito: $${deposito.toLocaleString()}</span>` : ''}
+                        </div>
                     </td>
                     <td class="p-3 text-right font-bold text-emerald-400">$${restante.toLocaleString()}</td>
                     <td class="p-3 text-center">
@@ -423,17 +364,10 @@
                             <option value="AGENDADO" ${p.estado === 'AGENDADO' ? 'selected' : ''}>AGENDADO</option>
                             <option value="ES HOY" ${p.estado === 'ES HOY' ? 'selected' : ''}>ES HOY</option>
                             <option value="EN CAMINO" ${p.estado === 'EN CAMINO' ? 'selected' : ''}>EN CAMINO</option>
-                            <option value="PARA RECOGER" ${p.estado === 'PARA RECOGER' ? 'selected' : ''}>PARA RECOGER</option>
                             <option value="ENTREGADO" ${p.estado === 'ENTREGADO' ? 'selected' : ''}>ENTREGADO</option>
                         </select>
                     </td>
                     <td class="p-3 font-medium text-pink-300">${p.nombre_asesor || 'General'}</td>
-                    <td class="p-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick='abrirModalEditar(${JSON.stringify(p)})' class="bg-blue-600/80 hover:bg-blue-600 text-white px-2.5 py-1 rounded text-[10px] transition" title="Editar Pedido"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="eliminarPedido(${p.id})" class="bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded text-[10px] transition" title="Eliminar Pedido"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -450,10 +384,16 @@
             const asesorObj = asesoresGlobal.find(a => String(a.id) === String(asesorId));
             document.getElementById('nombreAsesorFiltro').textContent = asesorObj ? asesorObj.nombre : 'Asesor';
 
-            const totalValor = filtrados.reduce((acc, p) => acc + (parseFloat(p.total_pedido) || 0), 0);
-            const comision = totalValor * 0.20;
+            // Lógica: EXCLUIR el depósito del total vendido por el asesor para comisiones
+            const totalValorSinDeposito = filtrados.reduce((acc, p) => {
+                const totalPedido = parseFloat(p.total_pedido) || 0;
+                const deposito = p.tipo_servicio === 'ALQUILER' ? (parseFloat(p.valor_deposito) || 0) : 0;
+                return acc + (totalPedido - deposito);
+            }, 0);
 
-            document.getElementById('asesorTotalValor').textContent = `$${totalValor.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+            const comision = totalValorSinDeposito * 0.20;
+
+            document.getElementById('asesorTotalValor').textContent = `$${totalValorSinDeposito.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
             document.getElementById('asesorTotalComision').textContent = `$${comision.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
         }
 
@@ -469,74 +409,6 @@
                 alert('No se pudo actualizar el estado.');
             }
         }
-
-        async function eliminarPedido(id) {
-            if (!confirm('¿Estás seguro de que deseas eliminar este pedido permanentemente?')) return;
-            try {
-                const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
-                if (error) throw error;
-                alert('Pedido eliminado con éxito.');
-                await cargarPedidos();
-            } catch (err) {
-                console.error('Error al eliminar:', err);
-                alert('No se pudo eliminar el pedido.');
-            }
-        }
-
-        // Modal Editar
-        function abrirModalEditar(p) {
-            document.getElementById('edit_id').value = p.id;
-            document.getElementById('edit_nombre_cliente').value = p.nombre_cliente || '';
-            document.getElementById('edit_telefono_cliente').value = p.telefono_cliente || '';
-            document.getElementById('edit_fecha_pedido').value = p.fecha_pedido || new Date().toISOString().split('T')[0];
-            document.getElementById('edit_correo_cliente').value = p.correo_cliente || '';
-            document.getElementById('edit_direccion_exacta').value = p.direccion_exacta || '';
-            document.getElementById('edit_barrio').value = p.barrio || '';
-            document.getElementById('edit_ciudad').value = p.ciudad || '';
-            document.getElementById('edit_total_pedido').value = p.total_pedido || 0;
-            document.getElementById('edit_valor_domicilio').value = p.valor_domicilio || 0;
-            document.getElementById('edit_valor_anticipo').value = p.valor_anticipo || 0;
-            document.getElementById('edit_descripcion').value = p.descripcion || '';
-            document.getElementById('edit_asesor_select').value = p.asesor_id || '';
-
-            document.getElementById('modalEditar').classList.remove('hidden');
-        }
-        function cerrarModalEditar() { document.getElementById('modalEditar').classList.add('hidden'); }
-
-        document.getElementById('formEditarPedido').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit_id').value;
-            const asesorSelect = document.getElementById('edit_asesor_select');
-            const asesorId = asesorSelect.value;
-            const nombreAsesor = asesorSelect.options[asesorSelect.selectedIndex].textContent;
-
-            const datosActualizados = {
-                nombre_cliente: document.getElementById('edit_nombre_cliente').value,
-                telefono_cliente: document.getElementById('edit_telefono_cliente').value,
-                fecha_pedido: document.getElementById('edit_fecha_pedido').value,
-                correo_cliente: document.getElementById('edit_correo_cliente').value,
-                direccion_exacta: document.getElementById('edit_direccion_exacta').value,
-                barrio: document.getElementById('edit_barrio').value,
-                ciudad: document.getElementById('edit_ciudad').value,
-                total_pedido: parseFloat(document.getElementById('edit_total_pedido').value) || 0,
-                valor_domicilio: parseFloat(document.getElementById('edit_valor_domicilio').value) || 0,
-                valor_anticipo: parseFloat(document.getElementById('edit_valor_anticipo').value) || 0,
-                descripcion: document.getElementById('edit_descripcion').value,
-                asesor_id: parseInt(asesorId),
-                nombre_asesor: nombreAsesor
-            };
-
-            try {
-                const { error } = await supabaseClient.from('pedidos').update(datosActualizados).eq('id', id);
-                if (error) throw error;
-                alert('¡Pedido actualizado con éxito!');
-                cerrarModalEditar();
-                await cargarPedidos();
-            } catch (err) {
-                console.error('Error al actualizar pedido:', err);
-                alert('Error al guardar los cambios.');
-            }
-        });
 
         function limpiarFiltros() {
             document.getElementById('filtroMes').value = '';
