@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pedidos - Cupissa</title>
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- Tailwind CSS para un diseño profesional y rápido -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fucsia: {
+                            600: '#db2777',
+                            700: '#be185d',
+                            prominent: '#ff007f'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col justify-between">
+
+    <!-- Header (Solo Logo) -->
+    <header class="border-b border-zinc-800 bg-zinc-950 py-4 px-6 sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="logo.png" alt="Logo Cupissa" class="h-10 w-auto object-contain" onerror="this.src='https://via.placeholder.com/150/000000/ff007f?text=CUPISSA'">
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl w-full mx-auto px-4 py-10 flex-grow">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-6 md:p-10">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">Nuevo <span class="text-pink-600">Pedido</span></h1>
+                <p class="text-zinc-400 text-sm mt-1">Completa los datos del cliente y adjunta los comprobantes o fotos.</p>
+            </div>
+
+            <form id="pedidoForm" class="space-y-6">
+                
+                <!-- Sección 1: Datos del Cliente y Fecha -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Nombre del Cliente *</label>
+                        <input type="text" id="nombre_cliente" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. Maria Perez">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Teléfono del Cliente *</label>
+                        <input type="tel" id="telefono_cliente" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. 3001234567">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-pink-500 mb-2">Fecha de Entrega *</label>
+                        <input type="date" id="fecha_pedido" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Correo del Cliente</label>
+                    <input type="email" id="correo_cliente" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. cliente@correo.com">
+                </div>
+
+                <!-- Sección 2: Ubicación -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Dirección Exacta</label>
+                        <input type="text" id="direccion_exacta" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. Calle 45 # 23-12 Apto 201">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Barrio</label>
+                        <input type="text" id="barrio" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. El Poblado">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Ciudad</label>
+                        <input type="text" id="ciudad" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="Ej. Medellín">
+                    </div>
+                </div>
+
+                <!-- Sección 3: Valores -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-black/40 p-4 rounded-xl border border-zinc-800">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-pink-500 mb-2">Total Pedido *</label>
+                        <input type="number" id="total_pedido" required min="0" step="any" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Valor Domicilio</label>
+                        <input type="number" id="valor_domicilio" min="0" step="any" value="0" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Valor Anticipo</label>
+                        <input type="number" id="valor_anticipo" min="0" step="any" value="0" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Sección 4: Asesor -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Nombre del Asesor *</label>
+                    <select id="asesor_select" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm">
+                        <option value="">Cargando asesores...</option>
+                    </select>
+                </div>
+
+                <!-- Sección 5: Subir Imágenes (Múltiples) -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Imágenes del Producto / Comprobante</label>
+                    <div class="border-2 border-dashed border-zinc-800 hover:border-pink-600 rounded-xl p-6 text-center transition cursor-pointer bg-black/20" onclick="document.getElementById('imagenes_input').click()">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-pink-600 mb-2"></i>
+                        <p class="text-sm text-zinc-300">Haz clic para seleccionar o arrastra tus imágenes aquí</p>
+                        <p class="text-xs text-zinc-500 mt-1">Puedes seleccionar múltiples archivos</p>
+                        <input type="file" id="imagenes_input" multiple accept="image/*" class="hidden">
+                    </div>
+                    <div id="previewContainer" class="flex flex-wrap gap-3 mt-4"></div>
+                </div>
+
+                <!-- Botón Enviar -->
+                <button type="submit" id="btnSubmit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-4 rounded-xl transition duration-200 shadow-lg shadow-pink-900/40 text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Registrar Pedido
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 py-6 text-center text-xs text-zinc-500">
+        &copy; 2026 Cupissa. Todos los derechos reservados.
+    </footer>
+
+    <!-- Script de Integración con Supabase -->
+    <script>
+        const SUPABASE_URL = 'https://lkdxtesgwqoizobxaawp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZHh0ZXNnd3FvaXpvYnhhYXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODMxNjIsImV4cCI6MjEwNzY1OTE2Mn0.rDQ8n8O6I9uHY6z4goQCTFfRjE8zExkifIRWFbBLycE';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Establecer la fecha actual por defecto en el input de fecha de entrega
+        document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+
+        async function cargarAsesores() {
+            const select = document.getElementById('asesor_select');
+            try {
+                const { data, error } = await supabaseClient.from('asesores').select('*').order('nombre', { ascending: true });
+                if (error) throw error;
+
+                select.innerHTML = '<option value="">Selecciona un asesor...</option>';
+                data.forEach(asesor => {
+                    const option = document.createElement('option');
+                    option.value = asesor.id;
+                    option.setAttribute('data-nombre', asesor.nombre);
+                    option.textContent = asesor.nombre;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error cargando asesores:', err);
+                select.innerHTML = '<option value="">Error al cargar asesores</option>';
+            }
+        }
+
+        const imagenesInput = document.getElementById('imagenes_input');
+        const previewContainer = document.getElementById('previewContainer');
+        let selectedFiles = [];
+
+        imagenesInput.addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            previewContainer.innerHTML = '';
+            selectedFiles.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-700 bg-black';
+                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        document.getElementById('pedidoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando pedido...';
+
+            try {
+                const asesorSelect = document.getElementById('asesor_select');
+                const asesorId = asesorSelect.value;
+                const nombreAsesor = asesorSelect.options[asesorSelect.selectedIndex].getAttribute('data-nombre');
+
+                let imageUrls = [];
+
+                for (const file of selectedFiles) {
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}_${file.name}`;
+                    const { data, error } = await supabaseClient.storage
+                        .from('productos-cupissa')
+                        .upload(fileName, file);
+
+                    if (error) throw error;
+
+                    const { data: publicUrlData } = supabaseClient.storage
+                        .from('productos-cupissa')
+                        .getPublicUrl(fileName);
+
+                    imageUrls.push(publicUrlData.publicUrl);
+                }
+
+                const nuevoPedido = {
+                    nombre_cliente: document.getElementById('nombre_cliente').value,
+                    telefono_cliente: document.getElementById('telefono_cliente').value,
+                    correo_cliente: document.getElementById('correo_cliente').value,
+                    direccion_exacta: document.getElementById('direccion_exacta').value,
+                    barrio: document.getElementById('barrio').value,
+                    ciudad: document.getElementById('ciudad').value,
+                    fecha_pedido: document.getElementById('fecha_pedido').value,
+                    total_pedido: parseFloat(document.getElementById('total_pedido').value) || 0,
+                    valor_domicilio: parseFloat(document.getElementById('valor_domicilio').value) || 0,
+                    valor_anticipo: parseFloat(document.getElementById('valor_anticipo').value) || 0,
+                    asesor_id: parseInt(asesorId),
+                    nombre_asesor: nombreAsesor,
+                    imagenes: imageUrls,
+                    estado: 'AGENDADO'
+                };
+
+                const { error: insertError } = await supabaseClient.from('pedidos').insert([nuevoPedido]);
+                if (insertError) throw insertError;
+
+                alert('¡Pedido registrado con éxito!');
+                document.getElementById('pedidoForm').reset();
+                document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+                previewContainer.innerHTML = '';
+                selectedFiles = [];
+                cargarAsesores();
+
+            } catch (err) {
+                console.error('Error al registrar:', err);
+                alert('Hubo un error al guardar el pedido. Revisa la consola.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Registrar Pedido';
+            }
+        });
+
+        cargarAsesores();
+    </script>
+</body>
+</html>

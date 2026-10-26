@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Cupissa</title>
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fucsia: {
+                            600: '#db2777',
+                            700: '#be185d',
+                            prominent: '#ff007f'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col justify-between">
+
+    <!-- Header (Solo Logo) -->
+    <header class="border-b border-zinc-800 bg-zinc-950 py-4 px-6 sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="logo.png" alt="Logo Cupissa" class="h-10 w-auto object-contain" onerror="this.src='https://via.placeholder.com/150/000000/ff007f?text=CUPISSA'">
+            <span class="text-xs text-zinc-400 font-normal uppercase tracking-widest ml-2">Admin Panel</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="abrirModalAsesor()" class="bg-zinc-900 border border-zinc-700 hover:border-pink-500 text-zinc-300 hover:text-white px-4 py-2 rounded-lg text-xs uppercase tracking-widest transition">
+                <i class="fa-solid fa-user-plus mr-1 text-pink-500"></i> Nuevo Asesor
+            </button>
+            <a href="index.html" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-xs uppercase tracking-widest transition shadow-lg shadow-pink-900/40">
+                <i class="fa-solid fa-plus mr-1"></i> Nuevo Pedido
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-8">
+        
+        <!-- KPIs Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos Mes</p>
+                <h3 id="kpiMes" class="text-3xl font-extrabold text-white mt-2">0</h3>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos Hoy</p>
+                <h3 id="kpiHoy" class="text-3xl font-extrabold text-pink-500 mt-2">0</h3>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">En Ruta</p>
+                <h3 id="kpiRuta" class="text-3xl font-extrabold text-yellow-500 mt-2">0</h3>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Entregados (Mes)</p>
+                <h3 id="kpiEntregados" class="text-3xl font-extrabold text-emerald-500 mt-2">0</h3>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md sm:col-span-2 lg:col-span-1">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Dinero Pedidos (Mes)</p>
+                <h3 id="kpiDineroMes" class="text-2xl font-extrabold text-pink-600 mt-2">$0</h3>
+            </div>
+        </div>
+
+        <!-- Sección de Filtros -->
+        <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex flex-wrap gap-3 items-center flex-grow">
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Filtrar Mes</label>
+                    <input type="month" id="filtroMes" class="bg-black border border-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:border-pink-600 focus:outline-none">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Filtrar Día</label>
+                    <input type="date" id="filtroDia" class="bg-black border border-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:border-pink-600 focus:outline-none">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Filtrar Estado</label>
+                    <select id="filtroEstado" class="bg-black border border-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:border-pink-600 focus:outline-none">
+                        <option value="">Todos los Estados</option>
+                        <option value="AGENDADO">AGENDADO</option>
+                        <option value="ES HOY">ES HOY</option>
+                        <option value="EN CAMINO">EN CAMINO</option>
+                        <option value="ENTREGADO">ENTREGADO</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase font-semibold text-zinc-400 mb-1">Filtrar Asesor</label>
+                    <select id="filtroAsesor" class="bg-black border border-zinc-800 text-white text-xs rounded-lg px-3 py-2 focus:border-pink-600 focus:outline-none">
+                        <option value="">Todos los Asesores</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-end gap-2">
+                <button onclick="limpiarFiltros()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-4 py-2 rounded-lg transition uppercase tracking-wider">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Limpiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel de Comisión -->
+        <div id="panelComision" class="hidden bg-gradient-to-r from-pink-950/60 to-zinc-900 border border-pink-900/60 p-5 rounded-xl flex flex-wrap justify-between items-center gap-4">
+            <div>
+                <span class="text-xs uppercase tracking-widest text-pink-400 font-semibold block">Resumen del Asesor Seleccionado</span>
+                <h4 id="nombreAsesorFiltro" class="text-lg font-bold text-white mt-1">Asesor</h4>
+            </div>
+            <div class="flex gap-6">
+                <div class="bg-black/50 px-4 py-2 rounded-lg border border-zinc-800">
+                    <span class="text-[10px] uppercase text-zinc-400 block">Total Valor Pedido</span>
+                    <span id="asesorTotalValor" class="text-lg font-bold text-white">$0</span>
+                </div>
+                <div class="bg-black/50 px-4 py-2 rounded-lg border border-pink-900">
+                    <span class="text-[10px] uppercase text-pink-400 block">Total Comisión (20%)</span>
+                    <span id="asesorTotalComision" class="text-lg font-bold text-pink-500">$0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Pedidos -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden">
+            <div class="p-5 border-b border-zinc-800 flex justify-between items-center">
+                <h3 class="font-bold text-white tracking-wide"><i class="fa-solid fa-list-check text-pink-500 mr-2"></i> Listado General de Pedidos Agendados</h3>
+                <span id="contadorPedidos" class="text-xs bg-zinc-800 px-3 py-1 rounded-full text-zinc-300">0 pedidos encontrados</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-black/60 text-zinc-400 uppercase tracking-wider border-b border-zinc-800">
+                            <th class="p-3">Fecha Entrega</th>
+                            <th class="p-3">Cliente</th>
+                            <th class="p-3">Contacto</th>
+                            <th class="p-3">Ubicación</th>
+                            <th class="p-3 text-right">Valores (Tot / Dom / Ant)</th>
+                            <th class="p-3 text-right">Restante</th>
+                            <th class="p-3 text-center">Imagen</th>
+                            <th class="p-3 text-center">Estado</th>
+                            <th class="p-3">Asesor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidosBody" class="divide-y divide-zinc-800/60 text-zinc-300">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Nuevo Asesor -->
+    <div id="modalAsesor" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
+            <button onclick="cerrarModalAsesor()" class="absolute top-4 right-4 text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 class="text-lg font-bold text-white mb-4"><i class="fa-solid fa-user-tie text-pink-500 mr-2"></i> Agregar Nuevo Asesor</h3>
+            <form id="formAsesor" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-zinc-400 mb-2">Nombre del Asesor *</label>
+                    <input type="text" id="nombreAsesorInput" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-pink-600 focus:outline-none text-sm" placeholder="Ej. Carlos Gomez">
+                </div>
+                <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl transition text-xs uppercase tracking-wider">Guardar Asesor</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Ver Imágenes -->
+    <div id="modalImagen" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-zinc-900 border border-zinc-800 max-w-3xl w-full p-6 rounded-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="cerrarModalImagen()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl z-10"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-base font-bold text-white mb-4">Evidencias del Pedido</h3>
+            <div id="galeriaImagenes" class="flex flex-wrap gap-4 overflow-y-auto p-2 justify-center items-center flex-grow">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 py-6 text-center text-xs text-zinc-500">
+        &copy; 2026 Cupissa. Panel de Control Administrativo.
+    </footer>
+
+    <!-- Script Admin -->
+    <script>
+        const SUPABASE_URL = 'https://lkdxtesgwqoizobxaawp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrZHh0ZXNnd3FvaXpvYnhhYXdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwODMxNjIsImV4cCI6MjEwNzY1OTE2Mn0.rDQ8n8O6I9uHY6z4goQCTFfRjE8zExkifIRWFbBLycE';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let pedidosGlobal = [];
+        let asesoresGlobal = [];
+
+        async function inicializarAdmin() {
+            const fechaActual = new Date();
+            const anio = fechaActual.getFullYear();
+            const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
+            document.getElementById('filtroMes').value = `${anio}-${mes}`;
+
+            await cargarAsesoresSelects();
+            await cargarPedidos();
+        }
+
+        async function cargarAsesoresSelects() {
+            try {
+                const { data, error } = await supabaseClient.from('asesores').select('*').order('nombre', { ascending: true });
+                if (error) throw error;
+                asesoresGlobal = data;
+
+                const filtroAsesor = document.getElementById('filtroAsesor');
+                filtroAsesor.innerHTML = '<option value="">Todos los Asesores</option>';
+                data.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    filtroAsesor.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Error cargando asesores:', err);
+            }
+        }
+
+        async function cargarPedidos() {
+            try {
+                const { data, error } = await supabaseClient.from('pedidos').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+
+                const hoyStr = new Date().toISOString().split('T')[0];
+                pedidosGlobal = await Promise.all(data.map(async (p) => {
+                    const fechaPedidoStr = p.fecha_pedido || p.created_at.split('T')[0];
+                    // Si llega la fecha y está agendado, cambia automáticamente a 'ES HOY'
+                    if (fechaPedidoStr === hoyStr && p.estado === 'AGENDADO') {
+                        p.estado = 'ES HOY';
+                        await supabaseClient.from('pedidos').update({ estado: 'ES HOY' }).eq('id', p.id);
+                    }
+                    return p;
+                }));
+
+                aplicarFiltrosYRenderizar();
+            } catch (err) {
+                console.error('Error cargando pedidos:', err);
+            }
+        }
+
+        function aplicarFiltrosYRenderizar() {
+            const mesFiltro = document.getElementById('filtroMes').value;
+            const diaFiltro = document.getElementById('filtroDia').value;
+            const estadoFiltro = document.getElementById('filtroEstado').value;
+            const asesorFiltro = document.getElementById('filtroAsesor').value;
+
+            let filtrados = pedidosGlobal.filter(p => {
+                const fechaBase = p.fecha_pedido || p.created_at.split('T')[0];
+                
+                if (mesFiltro && !fechaBase.startsWith(mesFiltro)) return false;
+                if (diaFiltro && fechaBase !== diaFiltro) return false;
+                if (estadoFiltro && p.estado !== estadoFiltro) return false;
+                if (asesorFiltro && String(p.asesor_id) !== String(asesorFiltro)) return false;
+
+                return true;
+            });
+
+            renderizarKPIs(pedidosGlobal, mesFiltro);
+            renderizarTabla(filtrados);
+            verificarPanelComision(asesorFiltro, filtrados);
+        }
+
+        function renderizarKPIs(todos, mesFiltro) {
+            const hoyStr = new Date().toISOString().split('T')[0];
+            const mesActualStr = new Date().toISOString().slice(0, 7);
+
+            const delMes = todos.filter(p => (p.fecha_pedido || p.created_at).startsWith(mesFiltro || mesActualStr));
+            document.getElementById('kpiMes').textContent = delMes.length;
+
+            // Pedidos de Hoy: Solo cuenta los que son de hoy y cuyo estado sigue siendo 'ES HOY' o 'AGENDADO' (se excluyen ENTREGADO o EN CAMINO)
+            const deHoy = todos.filter(p => {
+                const fechaBase = p.fecha_pedido || p.created_at.split('T')[0];
+                return fechaBase === hoyStr && (p.estado === 'ES HOY' || p.estado === 'AGENDADO');
+            });
+            document.getElementById('kpiHoy').textContent = deHoy.length;
+
+            const enRuta = todos.filter(p => p.estado === 'EN CAMINO');
+            document.getElementById('kpiRuta').textContent = enRuta.length;
+
+            const entregadosMes = delMes.filter(p => p.estado === 'ENTREGADO');
+            document.getElementById('kpiEntregados').textContent = entregadosMes.length;
+
+            const dineroMes = delMes.reduce((acc, p) => acc + (parseFloat(p.total_pedido) || 0), 0);
+            document.getElementById('kpiDineroMes').textContent = `$${dineroMes.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        }
+
+        function renderizarTabla(pedidos) {
+            const tbody = document.getElementById('tablaPedidosBody');
+            document.getElementById('contadorPedidos').textContent = `${pedidos.length} pedidos encontrados`;
+            tbody.innerHTML = '';
+
+            if (pedidos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-zinc-500">No se encontraron pedidos con los filtros seleccionados.</td></tr>`;
+                return;
+            }
+
+            pedidos.forEach(p => {
+                const total = parseFloat(p.total_pedido) || 0;
+                const domi = parseFloat(p.valor_domicilio) || 0;
+                const anti = parseFloat(p.valor_anticipo) || 0;
+                const restante = (total + domi) - anti;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-zinc-800/40 transition';
+                tr.innerHTML = `
+                    <td class="p-3 text-zinc-400 font-medium">${p.fecha_pedido || p.created_at.split('T')[0]}</td>
+                    <td class="p-3 font-semibold text-white">${p.nombre_cliente}</td>
+                    <td class="p-3">
+                        <div class="text-white">${p.telefono_cliente}</div>
+                        <div class="text-[10px] text-zinc-500">${p.correo_cliente || 'Sin correo'}</div>
+                    </td>
+                    <td class="p-3">
+                        <div>${p.direccion_exacta || 'S/D'}</div>
+                        <div class="text-[10px] text-zinc-500">${p.barrio || ''}, ${p.ciudad || ''}</div>
+                    </td>
+                    <td class="p-3 text-right">
+                        <div class="text-pink-400 font-bold">$${total.toLocaleString()}</div>
+                        <div class="text-[10px] text-zinc-500">Dom: $${domi.toLocaleString()} | Ant: $${anti.toLocaleString()}</div>
+                    </td>
+                    <td class="p-3 text-right font-bold text-emerald-400">$${restante.toLocaleString()}</td>
+                    <td class="p-3 text-center">
+                        ${p.imagenes && p.imagenes.length > 0 ? 
+                            `<button onclick='abrirModalImagen(${JSON.stringify(p.imagenes)})' class="bg-zinc-800 hover:bg-pink-600 text-white px-2.5 py-1 rounded text-[10px] uppercase transition"><i class="fa-solid fa-image mr-1"></i> Ver (${p.imagenes.length})</button>` : 
+                            `<span class="text-zinc-600 text-[10px]">Sin foto</span>`
+                        }
+                    </td>
+                    <td class="p-3 text-center">
+                        <select onchange="cambiarEstado(${p.id}, this.value)" class="bg-black border border-zinc-700 text-white text-[10px] rounded px-2 py-1 font-semibold uppercase tracking-wider focus:outline-none focus:border-pink-600">
+                            <option value="AGENDADO" ${p.estado === 'AGENDADO' ? 'selected' : ''}>AGENDADO</option>
+                            <option value="ES HOY" ${p.estado === 'ES HOY' ? 'selected' : ''}>ES HOY</option>
+                            <option value="EN CAMINO" ${p.estado === 'EN CAMINO' ? 'selected' : ''}>EN CAMINO</option>
+                            <option value="ENTREGADO" ${p.estado === 'ENTREGADO' ? 'selected' : ''}>ENTREGADO</option>
+                        </select>
+                    </td>
+                    <td class="p-3 font-medium text-pink-300">${p.nombre_asesor || 'General'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function verificarPanelComision(asesorId, filtrados) {
+            const panel = document.getElementById('panelComision');
+            if (!asesorId) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            const asesorObj = asesoresGlobal.find(a => String(a.id) === String(asesorId));
+            document.getElementById('nombreAsesorFiltro').textContent = asesorObj ? asesorObj.nombre : 'Asesor';
+
+            const totalValor = filtrados.reduce((acc, p) => acc + (parseFloat(p.total_pedido) || 0), 0);
+            const comision = totalValor * 0.20;
+
+            document.getElementById('asesorTotalValor').textContent = `$${totalValor.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+            document.getElementById('asesorTotalComision').textContent = `$${comision.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        }
+
+        async function cambiarEstado(id, nuevoEstado) {
+            try {
+                const { error } = await supabaseClient.from('pedidos').update({ estado: nuevoEstado }).eq('id', id);
+                if (error) throw error;
+                const pedido = pedidosGlobal.find(p => p.id === id);
+                if (pedido) pedido.estado = nuevoEstado;
+                aplicarFiltrosYRenderizar();
+            } catch (err) {
+                console.error('Error al cambiar estado:', err);
+                alert('No se pudo actualizar el estado.');
+            }
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtroMes').value = '';
+            document.getElementById('filtroDia').value = '';
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroAsesor').value = '';
+            aplicarFiltrosYRenderizar();
+        }
+
+        ['filtroMes', 'filtroDia', 'filtroEstado', 'filtroAsesor'].forEach(id => {
+            document.getElementById(id).addEventListener('change', aplicarFiltrosYRenderizar);
+        });
+
+        function abrirModalAsesor() { document.getElementById('modalAsesor').classList.remove('hidden'); }
+        function cerrarModalAsesor() { document.getElementById('modalAsesor').classList.add('hidden'); }
+
+        document.getElementById('formAsesor').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombreAsesorInput').value;
+            try {
+                const { error } = await supabaseClient.from('asesores').insert([{ nombre }]);
+                if (error) throw error;
+                alert('¡Asesor agregado con éxito!');
+                document.getElementById('formAsesor').reset();
+                cerrarModalAsesor();
+                await cargarAsesoresSelects();
+            } catch (err) {
+                console.error('Error al guardar asesor:', err);
+                alert('Error al registrar el asesor.');
+            }
+        });
+
+        function abrirModalImagen(imagenes) {
+            const galeria = document.getElementById('galeriaImagenes');
+            galeria.innerHTML = '';
+            imagenes.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'max-h-[70vh] rounded-lg border border-zinc-700 object-contain shadow-2xl';
+                galeria.appendChild(img);
+            });
+            document.getElementById('modalImagen').classList.remove('hidden');
+        }
+        function cerrarModalImagen() { document.getElementById('modalImagen').classList.add('hidden'); }
+
+        window.addEventListener('DOMContentLoaded', inicializarAdmin);
+    </script>
+</body>
+</html>
