@@ -42,11 +42,20 @@
             
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold text-white tracking-tight">Nuevo <span class="text-pink-600">Pedido</span></h1>
-                <p class="text-zinc-400 text-sm mt-1">Completa los datos del cliente, la descripción y adjunta los comprobantes o fotos.</p>
+                <p class="text-zinc-400 text-sm mt-1">Completa los datos del cliente, el tipo de servicio, la descripción y adjunta comprobantes o fotos.</p>
             </div>
 
             <form id="pedidoForm" class="space-y-6">
                 
+                <!-- Sección 0: Tipo de Servicio (Venta / Alquiler) -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-pink-500 mb-2">Tipo de Servicio *</label>
+                    <select id="tipo_servicio" required class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm font-semibold">
+                        <option value="VENTA" selected>VENTA</option>
+                        <option value="ALQUILER">ALQUILER</option>
+                    </select>
+                </div>
+
                 <!-- Sección 1: Datos del Cliente y Fecha -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -85,11 +94,18 @@
                 </div>
 
                 <!-- Sección 3: Valores -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-black/40 p-4 rounded-xl border border-zinc-800">
+                <div id="contenedorValores" class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-black/40 p-4 rounded-xl border border-zinc-800">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-pink-500 mb-2">Total Pedido *</label>
                         <input type="number" id="total_pedido" required min="0" step="any" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="0.00">
                     </div>
+
+                    <!-- Campo dinámico para Alquiler -->
+                    <div id="campoDeposito" class="hidden">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-amber-500 mb-2">Valor de Depósito *</label>
+                        <input type="number" id="valor_deposito" min="0" step="any" value="0" class="w-full bg-black border border-amber-900/60 rounded-lg px-4 py-3 text-amber-300 focus:outline-none focus:border-amber-500 transition text-sm" placeholder="0.00">
+                    </div>
+
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">Valor Domicilio</label>
                         <input type="number" id="valor_domicilio" min="0" step="any" value="0" class="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-pink-600 transition text-sm" placeholder="0.00">
@@ -147,6 +163,24 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+
+        // Alternar visualización del campo de Depósito según el Tipo de Servicio
+        const tipoServicioSelect = document.getElementById('tipo_servicio');
+        const campoDeposito = document.getElementById('campoDeposito');
+        const contenedorValores = document.getElementById('contenedorValores');
+
+        tipoServicioSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'ALQUILER') {
+                campoDeposito.classList.remove('hidden');
+                contenedorValores.classList.remove('md:grid-cols-3');
+                contenedorValores.classList.add('md:grid-cols-4');
+            } else {
+                campoDeposito.classList.add('hidden');
+                document.getElementById('valor_deposito').value = 0;
+                contenedorValores.classList.remove('md:grid-cols-4');
+                contenedorValores.classList.add('md:grid-cols-3');
+            }
+        });
 
         async function cargarAsesores() {
             const select = document.getElementById('asesor_select');
@@ -215,7 +249,11 @@
                     imageUrls.push(publicUrlData.publicUrl);
                 }
 
+                const tipoServicioVal = document.getElementById('tipo_servicio').value;
+                const valorDepositoVal = tipoServicioVal === 'ALQUILER' ? (parseFloat(document.getElementById('valor_deposito').value) || 0) : 0;
+
                 const nuevoPedido = {
+                    tipo_servicio: tipoServicioVal,
                     nombre_cliente: document.getElementById('nombre_cliente').value,
                     telefono_cliente: document.getElementById('telefono_cliente').value,
                     correo_cliente: document.getElementById('correo_cliente').value,
@@ -224,6 +262,7 @@
                     ciudad: document.getElementById('ciudad').value,
                     fecha_pedido: document.getElementById('fecha_pedido').value,
                     total_pedido: parseFloat(document.getElementById('total_pedido').value) || 0,
+                    valor_deposito: valorDepositoVal,
                     valor_domicilio: parseFloat(document.getElementById('valor_domicilio').value) || 0,
                     valor_anticipo: parseFloat(document.getElementById('valor_anticipo').value) || 0,
                     descripcion: document.getElementById('descripcion').value,
@@ -239,6 +278,8 @@
                 alert('¡Pedido registrado con éxito!');
                 document.getElementById('pedidoForm').reset();
                 document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+                document.getElementById('tipo_servicio').value = 'VENTA';
+                document.getElementById('tipo_servicio').dispatchEvent(new Event('change'));
                 previewContainer.innerHTML = '';
                 selectedFiles = [];
                 cargarAsesores();
