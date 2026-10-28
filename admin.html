@@ -349,6 +349,13 @@
                     return p;
                 }));
 
+                // Ordenar pedidosGlobal: Las fechas más nuevas arriba, las más antiguas abajo
+                pedidosGlobal.sort((a, b) => {
+                    const fechaA = a.fecha_pedido || a.created_at;
+                    const fechaB = b.fecha_pedido || b.created_at;
+                    return new Date(fechaB) - new Date(fechaA);
+                });
+
                 aplicarFiltrosYRenderizar();
             } catch (err) {
                 console.error('Error cargando pedidos:', err);
@@ -370,6 +377,13 @@
                 if (asesorFiltro && String(p.asesor_id) !== String(asesorFiltro)) return false;
 
                 return true;
+            });
+
+            // Ordenar también los filtrados por fecha (más nuevos arriba, más antiguos abajo)
+            filtrados.sort((a, b) => {
+                const fechaA = a.fecha_pedido || a.created_at;
+                const fechaB = b.fecha_pedido || b.created_at;
+                return new Date(fechaB) - new Date(fechaA);
             });
 
             renderizarKPIs(pedidosGlobal, mesFiltro);
@@ -415,12 +429,10 @@
                 const domi = parseFloat(p.valor_domicilio) || 0;
                 const anti = parseFloat(p.valor_anticipo) || 0;
                 const depo = parseFloat(p.valor_deposito) || 0;
-                // Aquí se ha sumado el valor del depósito en el cálculo del restante:
                 const restante = (total + domi + depo) - anti;
                 
                 const descSegura = (p.descripcion || 'Sin descripción').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 
-                // Leemos directamente tipo_servicio desde Supabase
                 const tipoServicio = (p.tipo_servicio || 'VENTA').toUpperCase();
                 const operacionBadge = `<span class="text-[9px] bg-pink-950 text-pink-300 px-1.5 py-0.5 rounded border border-pink-900/50 inline-block mb-1 font-semibold">${tipoServicio}</span><br>`;
 
