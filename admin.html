@@ -415,7 +415,8 @@
                 const domi = parseFloat(p.valor_domicilio) || 0;
                 const anti = parseFloat(p.valor_anticipo) || 0;
                 const depo = parseFloat(p.valor_deposito) || 0;
-                const restante = (total + domi) - anti;
+                // Aquí se ha sumado el valor del depósito en el cálculo del restante:
+                const restante = (total + domi + depo) - anti;
                 
                 const descSegura = (p.descripcion || 'Sin descripción').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 
