@@ -162,7 +162,11 @@
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+        // Bloquear fechas pasadas en el campo HTML (min)
+        const hoyStr = new Date().toISOString().split('T')[0];
+        const fechaPedidoInput = document.getElementById('fecha_pedido');
+        fechaPedidoInput.value = hoyStr;
+        fechaPedidoInput.min = hoyStr;
 
         // Alternar visualización del campo de Depósito según el Tipo de Servicio
         const tipoServicioSelect = document.getElementById('tipo_servicio');
@@ -223,11 +227,40 @@
 
         document.getElementById('pedidoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const fechaSeleccionada = document.getElementById('fecha_pedido').value;
+            const tipoServicioVal = document.getElementById('tipo_servicio').value;
+            const hoyActual = new Date().toISOString().split('T')[0];
+
+            // 1. Validar que la fecha no sea pasada
+            if (fechaSeleccionada < hoyActual) {
+                alert('No se pueden seleccionar fechas que ya pasaron.');
+                return;
+            }
+
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando pedido...';
 
             try {
+                // 2. Si es VENTA, validar que no se exceda el cupo máximo de 15 pedidos en el día seleccionado
+                if (tipoServicioVal === 'VENTA') {
+                    const { count, error: countError } = await supabaseClient
+                        .from('pedidos')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('fecha_pedido', fechaSeleccionada)
+                        .eq('tipo_servicio', 'VENTA');
+
+                    if (countError) throw countError;
+
+                    if (count >= 15) {
+                        alert(`El día ${fechaSeleccionada} ya tiene el máximo permitido de 15 pedidos para VENTA. Selecciona otra fecha.`);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Registrar Pedido';
+                        return;
+                    }
+                }
+
                 const asesorSelect = document.getElementById('asesor_select');
                 const asesorId = asesorSelect.value;
                 const nombreAsesor = asesorSelect.options[asesorSelect.selectedIndex].getAttribute('data-nombre');
@@ -249,7 +282,6 @@
                     imageUrls.push(publicUrlData.publicUrl);
                 }
 
-                const tipoServicioVal = document.getElementById('tipo_servicio').value;
                 const valorDepositoVal = tipoServicioVal === 'ALQUILER' ? (parseFloat(document.getElementById('valor_deposito').value) || 0) : 0;
 
                 const nuevoPedido = {
@@ -260,7 +292,7 @@
                     direccion_exacta: document.getElementById('direccion_exacta').value,
                     barrio: document.getElementById('barrio').value,
                     ciudad: document.getElementById('ciudad').value,
-                    fecha_pedido: document.getElementById('fecha_pedido').value,
+                    fecha_pedido: fechaSeleccionada,
                     total_pedido: parseFloat(document.getElementById('total_pedido').value) || 0,
                     valor_deposito: valorDepositoVal,
                     valor_domicilio: parseFloat(document.getElementById('valor_domicilio').value) || 0,
@@ -278,6 +310,7 @@
                 alert('¡Pedido registrado con éxito!');
                 document.getElementById('pedidoForm').reset();
                 document.getElementById('fecha_pedido').value = new Date().toISOString().split('T')[0];
+                document.getElementById('fecha_pedido').min = new Date().toISOString().split('T')[0];
                 document.getElementById('tipo_servicio').value = 'VENTA';
                 document.getElementById('tipo_servicio').dispatchEvent(new Event('change'));
                 previewContainer.innerHTML = '';
