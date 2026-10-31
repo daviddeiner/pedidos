@@ -296,11 +296,18 @@
         let pedidosGlobal = [];
         let asesoresGlobal = [];
 
+        // Helper para obtener la fecha actual en hora Colombia/Bogotá
+        function getBogotaDateStr() {
+            return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+        }
+
+        function getBogotaMonthStr() {
+            return getBogotaDateStr().slice(0, 7);
+        }
+
         async function inicializarAdmin() {
-            const fechaActual = new Date();
-            const anio = fechaActual.getFullYear();
-            const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
-            document.getElementById('filtroMes').value = `${anio}-${mes}`;
+            const mesActual = getBogotaMonthStr();
+            document.getElementById('filtroMes').value = mesActual;
 
             await cargarAsesoresSelects();
             await cargarPedidos();
@@ -339,7 +346,7 @@
                 const { data, error } = await supabaseClient.from('pedidos').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
 
-                const hoyStr = new Date().toISOString().split('T')[0];
+                const hoyStr = getBogotaDateStr();
                 pedidosGlobal = await Promise.all(data.map(async (p) => {
                     const fechaPedidoStr = p.fecha_pedido || p.created_at.split('T')[0];
                     if (fechaPedidoStr === hoyStr && p.estado === 'AGENDADO') {
@@ -392,8 +399,8 @@
         }
 
         function renderizarKPIs(todos, mesFiltro) {
-            const hoyStr = new Date().toISOString().split('T')[0];
-            const mesActualStr = new Date().toISOString().slice(0, 7);
+            const hoyStr = getBogotaDateStr();
+            const mesActualStr = getBogotaMonthStr();
 
             const delMes = todos.filter(p => (p.fecha_pedido || p.created_at).startsWith(mesFiltro || mesActualStr));
             document.getElementById('kpiMes').textContent = delMes.length;
