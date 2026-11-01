@@ -49,26 +49,30 @@
     <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-8">
         
         <!-- KPIs Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
-                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos Mes</p>
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total pedidos del mes</p>
                 <h3 id="kpiMes" class="text-3xl font-extrabold text-white mt-2">0</h3>
             </div>
             <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
-                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos Hoy</p>
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos de hoy</p>
                 <h3 id="kpiHoy" class="text-3xl font-extrabold text-pink-500 mt-2">0</h3>
             </div>
             <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
-                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">En Ruta</p>
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos en ruta</p>
                 <h3 id="kpiRuta" class="text-3xl font-extrabold text-yellow-500 mt-2">0</h3>
             </div>
             <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
-                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Entregados (Mes)</p>
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pedidos del mes entregados</p>
                 <h3 id="kpiEntregados" class="text-3xl font-extrabold text-emerald-500 mt-2">0</h3>
             </div>
-            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md sm:col-span-2 lg:col-span-1">
-                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Dinero Pedidos (Mes)</p>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Valor total de pedidos</p>
                 <h3 id="kpiDineroMes" class="text-2xl font-extrabold text-pink-600 mt-2">$0</h3>
+            </div>
+            <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-md">
+                <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Valor total a cobrar</p>
+                <h3 id="kpiTotalACobrar" class="text-2xl font-extrabold text-emerald-400 mt-2">$0</h3>
             </div>
         </div>
 
@@ -417,8 +421,21 @@
             const entregadosMes = delMes.filter(p => p.estado === 'ENTREGADO');
             document.getElementById('kpiEntregados').textContent = entregadosMes.length;
 
+            // Dinero Pedidos (Mes): Suma exacta de total_pedido sin domicilio, depósito ni anticipo
             const dineroMes = delMes.reduce((acc, p) => acc + (parseFloat(p.total_pedido) || 0), 0);
             document.getElementById('kpiDineroMes').textContent = `$${dineroMes.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+
+            // Total a Cobrar (Mes): Suma del restante de cada pedido del mes EXCEPTO los que ya están en estado ENTREGADO
+            const totalACobrarMes = delMes.reduce((acc, p) => {
+                if (p.estado === 'ENTREGADO') return acc; // Al estar entregado, ya se descontó (no se suma a cobrar)
+
+                const total = parseFloat(p.total_pedido) || 0;
+                const domi = parseFloat(p.valor_domicilio) || 0;
+                const anti = parseFloat(p.valor_anticipo) || 0;
+                const depo = parseFloat(p.valor_deposito) || 0;
+                return acc + ((total + domi + depo) - anti);
+            }, 0);
+            document.getElementById('kpiTotalACobrar').textContent = `$${totalACobrarMes.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
         }
 
         function renderizarTabla(pedidos) {
